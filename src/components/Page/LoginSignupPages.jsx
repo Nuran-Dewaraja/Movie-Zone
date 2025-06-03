@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Swal from 'sweetalert2';
 
 const API_BASE = 'https://localhost:7290/api/Auth';
 
@@ -40,20 +39,26 @@ const LoginSignupPages = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   const handleInputChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
+    setError('');
+    setSuccess('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    setSuccess('');
 
     if (isLogin) {
       if (!formData.email || !formData.password) {
-        Swal.fire('Error', 'Please enter email and password.', 'error');
+        setError('Please enter email and password.');
         return;
       }
       setLoading(true);
@@ -62,29 +67,29 @@ const LoginSignupPages = () => {
         if (result.token) {
           localStorage.setItem('token', result.token);
           localStorage.setItem('user', JSON.stringify(result.user));
-          await Swal.fire('Success', 'Login successful!', 'success');
+          setSuccess('Login successful!');
           navigate('/');
         } else {
-          Swal.fire('Error', result.message || 'Login failed.', 'error');
+          setError(result.message || 'Login failed.');
         }
       } catch (error) {
-        Swal.fire('Error', 'Login error, please try again.', 'error');
+        setError('Login error, please try again.');
       }
       setLoading(false);
     } else {
       if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
-        Swal.fire('Error', 'Please fill all fields.', 'error');
+        setError('Please fill all fields.');
         return;
       }
       if (formData.password !== formData.confirmPassword) {
-        Swal.fire('Error', 'Passwords do not match.', 'error');
+        setError('Passwords do not match.');
         return;
       }
       setLoading(true);
       try {
         const result = await signup(formData.name, formData.email, formData.password);
         if (result.message?.toLowerCase().includes('success')) {
-          await Swal.fire('Success', 'Signup successful! You can now login.', 'success');
+          setSuccess('Signup successful! You can now login.');
           setIsLogin(true);
           setFormData({
             email: '',
@@ -94,10 +99,10 @@ const LoginSignupPages = () => {
           });
           navigate('/login');
         } else {
-          Swal.fire('Error', result.message || 'Signup failed.', 'error');
+          setError(result.message || 'Signup failed.');
         }
       } catch (error) {
-        Swal.fire('Error', 'Signup error, please try again.', 'error');
+        setError('Signup error, please try again.');
       }
       setLoading(false);
     }
@@ -111,6 +116,8 @@ const LoginSignupPages = () => {
       confirmPassword: '',
       name: '',
     });
+    setError('');
+    setSuccess('');
   };
 
   return (
@@ -135,6 +142,9 @@ const LoginSignupPages = () => {
           onSubmit={handleSubmit}
           className="bg-white/10 backdrop-blur-md rounded-2xl p-8 shadow-2xl border border-white/20 space-y-6"
         >
+          {error && <div className="text-red-400 text-sm">{error}</div>}
+          {success && <div className="text-green-400 text-sm">{success}</div>}
+
           {!isLogin && (
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">Full Name</label>
