@@ -2,15 +2,22 @@ import React, { useState, useEffect } from 'react';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(true);
 
-  // Toggle HTML class for dark mode
+  // Initialize darkMode state from localStorage or default to true
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem('darkMode');
+    return saved === null ? true : saved === 'true';
+  });
+
+  // Sync dark mode class on html and save preference
   useEffect(() => {
+    const html = document.documentElement;
     if (darkMode) {
-      document.documentElement.classList.add('dark');
+      html.classList.add('dark');
     } else {
-      document.documentElement.classList.remove('dark');
+      html.classList.remove('dark');
     }
+    localStorage.setItem('darkMode', darkMode);
   }, [darkMode]);
 
   return (
@@ -21,7 +28,7 @@ const Navbar = () => {
           <a href="/">🎬 MovieZone</a>
         </div>
 
-        {/* Desktop menu - Single Row */}
+        {/* Desktop menu */}
         <div className="hidden md:flex items-center space-x-8 text-lg">
           <a href="/" className="hover:text-green-500 transition-colors duration-200">
             Home
@@ -72,6 +79,12 @@ const Navbar = () => {
           </a>
           <a href="/movies" onClick={() => setIsOpen(false)} className="block hover:text-green-500">
             Movies
+          </a>
+          <a href="/tvShows" onClick={() => setIsOpen(false)} className="block hover:text-green-500">
+            Tv Shows
+          </a>
+          <a href="/anime" onClick={() => setIsOpen(false)} className="block hover:text-green-500">
+            Anime
           </a>
           <a href="/contact" onClick={() => setIsOpen(false)} className="block hover:text-green-500">
             Contact
