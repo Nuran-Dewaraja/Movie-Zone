@@ -2,14 +2,15 @@ import React, { useState, useEffect } from 'react';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [user, setUser] = useState(null);
 
-  // Initialize darkMode state from localStorage or default to true
+  // Initialize darkMode from localStorage or default to true
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode');
     return saved === null ? true : saved === 'true';
   });
 
-  // Sync dark mode class on html and save preference
+  // Sync dark mode and save preference
   useEffect(() => {
     const html = document.documentElement;
     if (darkMode) {
@@ -19,6 +20,21 @@ const Navbar = () => {
     }
     localStorage.setItem('darkMode', darkMode);
   }, [darkMode]);
+
+  // Check user from localStorage
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    try {
+      if (storedUser && storedUser !== 'undefined') {
+        setUser(JSON.parse(storedUser));
+      } else {
+        setUser(null);
+      }
+    } catch (error) {
+      console.error('Failed to parse user from localStorage:', error);
+      setUser(null);
+    }
+  }, []);
 
   return (
     <nav className="bg-white dark:bg-gray-900 dark:text-white shadow-lg">
@@ -54,13 +70,17 @@ const Navbar = () => {
             {darkMode ? '☀️' : '🌙'}
           </button>
 
-          {/* Login Button */}
-          <a
-            href="/login"
-            className="bg-green-600 text-white px-4 py-1.5 rounded hover:bg-green-700"
-          >
-            Login
-          </a>
+          {/* Login or Profile Icon */}
+          {user ? (
+            <a href="/profile" className="text-2xl hover:text-green-500">👤</a>
+          ) : (
+            <a
+              href="/login"
+              className="bg-green-600 text-white px-4 py-1.5 rounded hover:bg-green-700"
+            >
+              Login
+            </a>
+          )}
         </div>
 
         {/* Mobile hamburger */}
@@ -100,13 +120,23 @@ const Navbar = () => {
             {darkMode ? '☀️' : '🌙'}
           </button>
 
-          <a
-            href="/login"
-            onClick={() => setIsOpen(false)}
-            className="block bg-green-600 text-white px-4 py-1.5 rounded hover:bg-green-700"
-          >
-            Login
-          </a>
+          {user ? (
+            <a
+              href="/profile"
+              onClick={() => setIsOpen(false)}
+              className="block text-2xl hover:text-green-500"
+            >
+              👤
+            </a>
+          ) : (
+            <a
+              href="/login"
+              onClick={() => setIsOpen(false)}
+              className="block bg-green-600 text-white px-4 py-1.5 rounded hover:bg-green-700"
+            >
+              Login
+            </a>
+          )}
         </div>
       )}
     </nav>

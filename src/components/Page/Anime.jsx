@@ -111,7 +111,7 @@ const Anime = () => {
 
   return (
     <div className="min-h-screen bg-black p-6">
-      <h2 className="text-3xl font-bold text-white mb-8 text-center mt-12">Popular Movies</h2>
+      <h2 className="text-3xl font-bold text-white mb-8 text-center mt-12">Popular Anime</h2>
 
       {loading ? (
         <div className="flex justify-center items-center h-64">

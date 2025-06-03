@@ -313,11 +313,10 @@ const FeaturedMovie = () => {
             <span className="mr-2">🎥</span>FEATURED MOVIE
           </div>
           <h1 className="text-6xl font-bold text-orange-600 mb-4 animate-delay-2">
-            THE MATRIX
+            MovieZone
           </h1>
           <p className="text-lg leading-relaxed mb-6 animate-delay-3">
-            A computer programmer discovers that reality as he knows it doesn't exist.
-            Join Neo on his journey down the rabbit hole in this groundbreaking sci-fi thriller.
+            Welcome to MovieZone – your ultimate destination for movies, TV shows, and anime. Discover the latest releases, timeless classics, and hidden gems, all in one place. Dive into the world of entertainment with trailers, reviews, and more — only on MovieZone
           </p>
           <div className="flex gap-4 mb-6 animate-delay-4">
             <button className="bg-orange-600 text-white px-6 py-3 rounded-xl hover:shadow-orange-lg transition hover:scale-105">
