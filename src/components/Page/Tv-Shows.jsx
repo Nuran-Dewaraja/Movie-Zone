@@ -1,43 +1,95 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios'; // Ensure axios is installed: npm install axios
-import '../css/movies.css'; // Use same styles for consistency
+import React, { useEffect, useState, useRef } from 'react';
+import axios from 'axios';
+import '../css/movies.css';
 
 const TvShows = () => {
   const [tvShows, setTvShows] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedShowUrl, setSelectedShowUrl] = useState(null);
+  const [errorMsg, setErrorMsg] = useState('');
+  const [genreMap, setGenreMap] = useState({});
+  const videoRef = useRef(null);
 
+  const BEARER_TOKEN = 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxOTE3YzRmMjFlYzFlNDkzODM4ZDI2NzRiOTkwNTMxOCIsIm5iZiI6MTc0ODg1NDQzOS45MTM5OTk4LCJzdWIiOiI2ODNkNjZhNzBkY2I4NGVhNWM3ZjQxODIiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.Ir6qHV61F12cWMI_DKnjFmay3L46pUSCfYBAxArczD4';
+
+  // Fetch genres
   useEffect(() => {
-    axios.get('https://api.themoviedb.org/3/discover/tv', {
+    axios.get('https://api.themoviedb.org/3/genre/tv/list', {
+      headers: {
+        accept: 'application/json',
+        Authorization: BEARER_TOKEN,
+      }
+    }).then((response) => {
+      const map = {};
+      response.data.genres.forEach(g => {
+        map[g.id] = g.name;
+      });
+      setGenreMap(map);
+    });
+  }, []);
+
+  // Fetch TV shows
+  useEffect(() => {
+    axios.get('https://api.themoviedb.org/3/tv/popular', {
       params: {
-        include_adult: false,
-        include_null_first_air_dates: false,
         language: 'en-US',
         page: 1,
-        sort_by: 'popularity.desc',
       },
       headers: {
         accept: 'application/json',
-        Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIxOTE3YzRmMjFlYzFlNDkzODM4ZDI2NzRiOTkwNTMxOCIsIm5iZiI6MTc0ODg1NDQzOS45MTM5OTk4LCJzdWIiOiI2ODNkNjZhNzBkY2I4NGVhNWM3ZjQxODIiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.Ir6qHV61F12cWMI_DKnjFmay3L46pUSCfYBAxArczD4'
+        Authorization: BEARER_TOKEN,
       }
-    })
-      .then((response) => {
-        const shows = response.data.results.map((show) => ({
-          id: show.id,
-          title: show.name,
-          year: show.first_air_date?.split('-')[0],
-          genre: 'N/A', // Optional: fetch genre names using genre API
-          poster: show.poster_path
-            ? `https://image.tmdb.org/t/p/w500${show.poster_path}`
-            : 'https://via.placeholder.com/500x750?text=No+Image'
-        }));
-        setTvShows(shows);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error('Error fetching TV shows:', error);
-        setLoading(false);
-      });
+    }).then((response) => {
+      const shows = response.data.results.map((show, index) => ({
+        id: show.id,
+        title: show.name,
+        year: show.first_air_date?.split('-')[0] || 'N/A',
+        genre: show.genre_ids.length ? genreMap[show.genre_ids[0]] || 'N/A' : 'N/A',
+        poster: show.poster_path
+          ? `https://image.tmdb.org/t/p/w500${show.poster_path}`
+          : 'https://via.placeholder.com/500x750?text=No+Image',
+        showUrl: `/tv/tv${index + 1}.mp4`,
+      }));
+      setTvShows(shows);
+      setLoading(false);
+    }).catch((error) => {
+      console.error('Error fetching TV shows:', error);
+      setLoading(false);
+    });
+  }, [genreMap]);
+
+  const closePlayer = () => {
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.currentTime = 0;
+    }
+    setSelectedShowUrl(null);
+    setErrorMsg('');
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        closePlayer();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
+
+  const handlePlayShow = async (url) => {
+    try {
+      const res = await fetch(url, { method: 'HEAD' });
+      if (res.ok) {
+        setSelectedShowUrl(url);
+        setErrorMsg('');
+      } else {
+        setErrorMsg('TV show file not found.');
+      }
+    } catch (err) {
+      setErrorMsg('Error loading TV show.');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-black p-6">
@@ -59,8 +111,42 @@ const TvShows = () => {
               />
               <h3 className="text-white text-lg font-semibold">{show.title}</h3>
               <p className="text-gray-400 text-sm">{show.genre} • {show.year}</p>
+              <button
+                onClick={() => handlePlayShow(show.showUrl)}
+                className="mt-2 bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
+              >
+                Play Show
+              </button>
             </div>
           ))}
+        </div>
+      )}
+
+      {errorMsg && (
+        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-4 py-2 rounded shadow-lg z-50">
+          {errorMsg}
+        </div>
+      )}
+
+      {selectedShowUrl && (
+        <div className="fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
+          <div className="bg-gray-900 p-4 rounded-lg max-w-4xl w-full relative">
+            <button
+              onClick={closePlayer}
+              className="absolute top-2 right-3 text-white text-xl"
+            >
+              ✕
+            </button>
+            <video
+              ref={videoRef}
+              controls
+              autoPlay
+              className="w-full h-auto rounded"
+            >
+              <source src={selectedShowUrl} type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+          </div>
         </div>
       )}
     </div>

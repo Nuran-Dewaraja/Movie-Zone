@@ -29,6 +29,12 @@ const Navbar = () => {
           <a href="/movies" className="hover:text-green-500 transition-colors duration-200">
             Movies
           </a>
+          <a href="/tvShows" className="hover:text-green-500 transition-colors duration-200">
+            Tv Shows
+          </a>
+          <a href="/anime" className="hover:text-green-500 transition-colors duration-200">
+            Anime
+          </a>
           <a href="/contact" className="hover:text-green-500 transition-colors duration-200">
             Contact
           </a>
